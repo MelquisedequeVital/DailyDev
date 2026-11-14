@@ -11,11 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.ui.theme.DailyDevColors
 
 @Composable
 fun DailyDevTopBar(
-    xp: Int = 69,
+    usuario: Usuario,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -44,12 +45,12 @@ fun DailyDevTopBar(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = xp.toString().padStart(3, '0'),
-                color = DailyDevColors.AccentGold,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                text = usuario.nome,
+                color = DailyDevColors.TextPrimary,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             Surface(
                 modifier = Modifier.size(34.dp),
                 shape = CircleShape,
@@ -58,7 +59,7 @@ fun DailyDevTopBar(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = ":)",
+                        text = usuario.nome.take(1).uppercase(),
                         color = DailyDevColors.PrimaryBlue,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold

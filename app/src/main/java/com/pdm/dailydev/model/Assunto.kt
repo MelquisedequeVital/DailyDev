@@ -1,9 +1,8 @@
 package com.pdm.dailydev.model
 
-enum class Assunto {
-    VARIAVEIS,
-    CONDICIONAIS,
-    LOOPS,
-    FUNCOES,
-    ESTRUTURAS_DE_DADOS
-}
+import java.util.UUID
+
+data class Assunto(
+    val id: UUID = UUID.randomUUID(),
+    val nome: String
+)

@@ -19,11 +19,9 @@ data class Tentativa(
         }
     }
 
-    // Devolve um valor de 0.0 (0%) a 1.0 (100%) — ouro para cálculos matemáticos e IA
     val aproveitamento: Double
         get() = acertos.toDouble() / totalQuestoes
 
-    // Mantém compatibilidade fácil se você quiser saber se ele gabaritou ou atingiu a média
     val aprovado: Boolean
-        get() = aproveitamento >= 0.5 // Ex: acertou pelo menos 1 de 2 (50%)
+        get() = aproveitamento >= 0.5
 }

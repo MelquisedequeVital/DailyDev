@@ -1,5 +1,6 @@
 package com.pdm.dailydev.ui.telas.licao
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,10 +24,22 @@ import com.pdm.dailydev.ui.theme.DailyDevColors
 fun LicaoScreen(
     licao: Licao,
     onVoltarClick: () -> Unit = {},
-    onConcluirLicao: (List<Int>) -> Unit = {},
+    onConcluirLicao: (respostas: List<Int>, irParaProxima: Boolean) -> Unit = { _, _ -> },
     viewModel: LicaoViewModel = viewModel(key = licao.id.toString()) { LicaoViewModel(licao) }
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    val concluirEVoltar = {
+        viewModel.avancar { respostas ->
+            onConcluirLicao(respostas, false)
+        }
+    }
+
+    val concluirEAvancar = {
+        viewModel.avancar { respostas ->
+            onConcluirLicao(respostas, true)
+        }
+    }
 
     Scaffold(
         containerColor = DailyDevColors.Background,
@@ -41,11 +54,17 @@ fun LicaoScreen(
                     titulo = licao.titulo,
                     etapaAtual = uiState.etapaAtual,
                     totalEtapas = uiState.totalEtapas,
-                    onVoltarClick = { viewModel.voltar(onVoltarClick) }
+                    onVoltarClick = {
+                        if (uiState is LicaoUiState.Resultado) {
+                            concluirEVoltar()
+                        } else {
+                            viewModel.voltar(onVoltarClick)
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = licao.assunto.name,
+                    text = licao.assunto.nome,
                     color = DailyDevColors.TextSecondary,
                     fontSize = 13.sp,
                     modifier = Modifier.padding(start = 36.dp)
@@ -53,26 +72,52 @@ fun LicaoScreen(
             }
         },
         bottomBar = {
-            Button(
-                onClick = { viewModel.avancar(onConcluirLicao) },
-                enabled = uiState.podeAvancar,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 16.dp)
-                    .height(52.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = DailyDevColors.PrimaryBlue,
-                    disabledContainerColor = DailyDevColors.SurfaceCard
-                )
+                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(
-                    text = uiState.textoBotao,
-                    color = DailyDevColors.TextPrimary,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Button(
+                    onClick = concluirEAvancar,
+                    enabled = uiState.podeAvancar,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = DailyDevColors.PrimaryBlue,
+                        disabledContainerColor = DailyDevColors.SurfaceCard
+                    )
+                ) {
+                    Text(
+                        text = uiState.textoBotao,
+                        color = DailyDevColors.TextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                if (uiState is LicaoUiState.Resultado) {
+                    OutlinedButton(
+                        onClick = concluirEVoltar,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.5.dp, DailyDevColors.BorderDefault),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = DailyDevColors.TextPrimary
+                        )
+                    ) {
+                        Text(
+                            text = "Voltar ao início",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
             }
         }
     ) { innerPadding ->
@@ -107,7 +152,8 @@ fun LicaoScreen(
 
                 is LicaoUiState.Resultado -> ResultadoCard(
                     acertos = s.acertos,
-                    totalQuestoes = s.totalQuestoes
+                    totalQuestoes = s.totalQuestoes,
+                    onVoltarInicioClick = concluirEVoltar
                 )
             }
         }
