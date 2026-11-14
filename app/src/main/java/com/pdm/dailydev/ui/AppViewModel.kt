@@ -7,6 +7,7 @@ import com.pdm.dailydev.data.LicaoRepositoryLocal
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.recomendacao.MotorRecomendacao
+import com.pdm.dailydev.recomendacao.RecomendadorAdaptativo
 import com.pdm.dailydev.recomendacao.RecomendadorSimples
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,7 @@ import kotlinx.coroutines.launch
 
 class AppViewModel(
     private val repository: LicaoRepository = LicaoRepositoryLocal(),
-    private val motor: MotorRecomendacao = RecomendadorSimples()
+    private val motor: MotorRecomendacao = RecomendadorAdaptativo()
 ) : ViewModel() {
 
     val usuario = Usuario(

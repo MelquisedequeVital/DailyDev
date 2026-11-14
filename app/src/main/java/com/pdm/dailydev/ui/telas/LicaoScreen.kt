@@ -1,4 +1,4 @@
-package com.pdm.dailydev.ui.telas.licao
+package com.pdm.dailydev.ui.telas
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -18,14 +18,18 @@ import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.ui.components.AlternativaCard
 import com.pdm.dailydev.ui.components.ExplicacaoCard
 import com.pdm.dailydev.ui.components.LicaoHeader
+import com.pdm.dailydev.ui.telas.licao.LicaoUiState
+import com.pdm.dailydev.ui.telas.licao.LicaoViewModel
+import com.pdm.dailydev.ui.telas.licao.ResultadoCard
 import com.pdm.dailydev.ui.theme.DailyDevColors
 
 @Composable
 fun LicaoScreen(
     licao: Licao,
+    sessaoId: java.util.UUID = java.util.UUID.randomUUID(),
     onVoltarClick: () -> Unit = {},
     onConcluirLicao: (respostas: List<Int>, irParaProxima: Boolean) -> Unit = { _, _ -> },
-    viewModel: LicaoViewModel = viewModel(key = licao.id.toString()) { LicaoViewModel(licao) }
+    viewModel: LicaoViewModel = viewModel(key = sessaoId.toString()) { LicaoViewModel(licao) }
 ) {
     val uiState by viewModel.uiState.collectAsState()
 

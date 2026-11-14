@@ -10,15 +10,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.NivelUsuario
-import com.pdm.dailydev.model.Tentativa
 import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.ui.components.DailyDevTopBar
+import com.pdm.dailydev.ui.components.HistoricoLicaoCard
+import com.pdm.dailydev.ui.components.NivelItemRow
 import com.pdm.dailydev.ui.theme.DailyDevColors
 
 @Composable
@@ -31,6 +31,10 @@ fun TelaPrincipal(
     val temLicaoDisponivel = proximaLicao != null
     val licoesPorId = remember(catalogoLicoes) { catalogoLicoes.associateBy { it.id } }
     val historicoRecente = usuario.historico.asReversed()
+
+    val licoesDominadas = usuario.historico
+        .groupBy { it.licaoId }
+        .count { (_, tentativas) -> tentativas.maxOf { it.aproveitamento } >= 0.7 }
 
     Scaffold(
         containerColor = DailyDevColors.Background,
@@ -147,7 +151,7 @@ fun TelaPrincipal(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "${historicoRecente.size}/${catalogoLicoes.size}",
+                        text = "$licoesDominadas/${catalogoLicoes.size} dominadas",
                         color = DailyDevColors.PrimaryBlue,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -174,119 +178,11 @@ fun TelaPrincipal(
                         HistoricoLicaoCard(
                             tentativa = tentativa,
                             titulo = licaoResolvida?.titulo ?: "Lição concluída",
-                            assunto = licaoResolvida?.assunto?.nome?: ""
+                            assunto = licaoResolvida?.assunto?.nome ?: ""
                         )
                     }
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun HistoricoLicaoCard(
-    tentativa: Tentativa,
-    titulo: String,
-    assunto: String
-) {
-    val erros = tentativa.totalQuestoes - tentativa.acertos
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = DailyDevColors.SurfaceCard,
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.5.dp, DailyDevColors.BorderDefault)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = titulo,
-                    color = DailyDevColors.TextPrimary,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "${tentativa.acertos}/${tentativa.totalQuestoes}",
-                    color = if (tentativa.aprovado) DailyDevColors.SuccessGreen else DailyDevColors.AccentOrange,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = assunto,
-                    color = DailyDevColors.TextSecondary,
-                    fontSize = 13.sp
-                )
-                Text(
-                    text = "${tentativa.acertos} acerto(s) • $erros erro(s)",
-                    color = DailyDevColors.TextSecondary,
-                    fontSize = 13.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            LinearProgressIndicator(
-                progress = { tentativa.aproveitamento.toFloat() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(50)),
-                color = if (tentativa.aprovado) DailyDevColors.SuccessGreen else DailyDevColors.AccentOrange,
-                trackColor = DailyDevColors.Background
-            )
-        }
-    }
-}
-
-@Composable
-private fun NivelItemRow(
-    nome: String,
-    desbloqueado: Boolean,
-    atual: Boolean
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = nome,
-            color = if (desbloqueado) DailyDevColors.TextPrimary else DailyDevColors.TextSecondary,
-            fontSize = 16.sp,
-            fontWeight = if (atual) FontWeight.Bold else FontWeight.Normal
-        )
-
-        val indicador = when {
-            atual -> "✓"
-            desbloqueado -> ">"
-            else -> "Bloqueado"
-        }
-
-        val corIndicador = when {
-            atual -> DailyDevColors.SuccessGreen
-            desbloqueado -> DailyDevColors.PrimaryBlue
-            else -> DailyDevColors.TextSecondary
-        }
-
-        Text(
-            text = indicador,
-            color = corIndicador,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-        )
     }
 }

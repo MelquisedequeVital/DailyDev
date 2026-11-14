@@ -5,7 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.pdm.dailydev.ui.telas.TelaPrincipal
-import com.pdm.dailydev.ui.telas.licao.LicaoScreen
+import com.pdm.dailydev.ui.telas.LicaoScreen
 
 @Composable
 fun DailyDevApp(
@@ -28,6 +28,7 @@ fun DailyDevApp(
         is AppScreenState.EmLicao -> {
             LicaoScreen(
                 licao = estado.licao,
+                sessaoId = estado.sessaoId,
                 onVoltarClick = { appViewModel.voltarParaPrincipal() },
                 onConcluirLicao = { respostas, irParaProxima ->
                     appViewModel.concluirLicao(estado.licao, respostas, irParaProxima)
