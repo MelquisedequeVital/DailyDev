@@ -1,18 +1,11 @@
 package com.pdm.dailydev.data
 
-import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Source
 import com.pdm.dailydev.model.Assunto
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Questao
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.util.UUID
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 class LicaoRepositoryFirestore(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
@@ -20,10 +13,8 @@ class LicaoRepositoryFirestore(
 
     private val assuntosCollection = db.collection("assuntos")
     private val licoesCollection = db.collection("licoes")
-    private val seedMutex = Mutex()
 
     override suspend fun obterTodosAssuntos(): List<Assunto> {
-        popularBancoSeVazio()
         val snapshot = assuntosCollection.get().awaitResult()
         return snapshot.documents.mapNotNull { doc ->
             documentoParaAssunto(doc)
@@ -31,7 +22,6 @@ class LicaoRepositoryFirestore(
     }
 
     override suspend fun obterTodasLicoes(): List<Licao> {
-        popularBancoSeVazio()
         val snapshot = licoesCollection.get().awaitResult()
         return snapshot.documents.mapNotNull { doc ->
             documentoParaLicao(doc)
@@ -39,7 +29,6 @@ class LicaoRepositoryFirestore(
     }
 
     override suspend fun obterLicoesPorAssunto(assuntoId: UUID): List<Licao> {
-        popularBancoSeVazio()
         val snapshot = licoesCollection
             .whereEqualTo("assuntoId", assuntoId.toString())
             .get()
@@ -51,64 +40,8 @@ class LicaoRepositoryFirestore(
     }
 
     override suspend fun obterLicaoPorId(id: UUID): Licao? {
-        popularBancoSeVazio()
         val doc = licoesCollection.document(id.toString()).get().awaitResult()
         return if (doc.exists()) documentoParaLicao(doc) else null
-    }
-
-    /**
-     * Envia os assuntos e lições iniciais para o Firestore caso o banco ainda esteja vazio.
-     */
-    private suspend fun popularBancoSeVazio() {
-        seedMutex.withLock {
-            // Source.SERVER: pergunta ao servidor, não ao cache do celular.
-            // Sem internet o cache vem vazio e o app acharia que o banco está vazio,
-            // enviando as lições de novo (com IDs novos = duplicadas).
-            val verificacao = try {
-                assuntosCollection.limit(1).get(Source.SERVER).awaitResult()
-            } catch (e: Exception) {
-                return // sem conexão: não dá para saber se o banco está vazio, então não popula
-            }
-            if (!verificacao.isEmpty) return
-
-            val dadosIniciais = LicaoRepositoryLocal()
-            val assuntos = dadosIniciais.obterTodosAssuntos()
-            val licoes = dadosIniciais.obterTodasLicoes()
-
-            val batch = db.batch()
-
-            for (assunto in assuntos) {
-                val docRef = assuntosCollection.document(assunto.id.toString())
-                val dadosAssunto = mapOf(
-                    "id" to assunto.id.toString(),
-                    "nome" to assunto.nome
-                )
-                batch.set(docRef, dadosAssunto)
-            }
-
-            for (licao in licoes) {
-                val docRef = licoesCollection.document(licao.id.toString())
-                val questoesMap = licao.questoes.map { questao ->
-                    mapOf(
-                        "enunciado" to questao.enunciado,
-                        "alternativas" to questao.alternativas,
-                        "indiceCorreto" to questao.indiceCorreto
-                    )
-                }
-                val dadosLicao = mapOf(
-                    "id" to licao.id.toString(),
-                    "titulo" to licao.titulo,
-                    "textoExplicacao" to licao.textoExplicacao,
-                    "dificuldade" to licao.dificuldade,
-                    "assuntoId" to licao.assunto.id.toString(),
-                    "assuntoNome" to licao.assunto.nome,
-                    "questoes" to questoesMap
-                )
-                batch.set(docRef, dadosLicao)
-            }
-
-            batch.commit().awaitResult()
-        }
     }
 
     private fun documentoParaAssunto(doc: DocumentSnapshot): Assunto? {
@@ -170,14 +103,4 @@ class LicaoRepositoryFirestore(
             null
         }
     }
-
-    private suspend fun <T> Task<T>.awaitResult(): T =
-        suspendCancellableCoroutine { continuation ->
-            addOnSuccessListener { result ->
-                continuation.resume(result)
-            }
-            addOnFailureListener { exception ->
-                continuation.resumeWithException(exception)
-            }
-        }
 }

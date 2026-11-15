@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Regras de segurança do Cloud Firestore do DailyDev.
+// Para publicar: Console do Firebase > Firestore Database > Regras > colar este arquivo > Publicar.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Catálogo: qualquer um lê, ninguém grava pelo app.
+    // (Para editar lições, use o console do Firebase.)
+    match /assuntos/{assuntoId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /licoes/{licaoId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Progresso: cada aluno só lê e grava os próprios dados.
+    // {uid} é o ID do login (anônimo por enquanto) do Firebase Authentication.
+    match /usuarios/{uid}/{documento=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

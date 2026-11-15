@@ -1,9 +1,12 @@
 package com.pdm.dailydev.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pdm.dailydev.data.LicaoRepository
 import com.pdm.dailydev.data.LicaoRepositoryFirestore
+import com.pdm.dailydev.data.ProgressoRepository
+import com.pdm.dailydev.data.ProgressoRepositoryFirestore
 import com.pdm.dailydev.filtro.FiltroLicoes
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Usuario
@@ -16,6 +19,7 @@ import kotlinx.coroutines.launch
 
 class AppViewModel(
     private val repository: LicaoRepository = LicaoRepositoryFirestore(),
+    private val progressoRepository: ProgressoRepository = ProgressoRepositoryFirestore(),
     private val motor: MotorRecomendacao = RecomendadorAdaptativo()
 ) : ViewModel() {
 
@@ -53,6 +57,9 @@ class AppViewModel(
             _erro.value = null
             try {
                 val licoes = repository.obterTodasLicoes()
+                // Histórico antes de recomendar: a recomendação depende do que o aluno já fez
+                val historico = progressoRepository.carregarHistorico(usuario.id)
+                usuario.carregarHistorico(historico)
                 _catalogoLicoes.value = licoes
                 _proximaLicao.value = motor.recomendarProxima(usuario, licoes)
                 if (licoes.isEmpty()) {
@@ -60,6 +67,7 @@ class AppViewModel(
                 }
             } catch (e: Exception) {
                 // sem o try/catch, um erro do banco (ex.: sem permissão) fecharia o app
+                Log.w("AppViewModel", "Erro ao carregar lições/progresso", e)
                 _erro.value = "Erro ao carregar as lições. Verifique sua conexão."
             } finally {
                 _carregando.value = false
@@ -72,7 +80,16 @@ class AppViewModel(
         licaoConcluida: Licao,
         respostasEscolhidas: List<Int>
     ): Licao? {
-        usuario.registrarTentativa(licaoConcluida, respostasEscolhidas)
+        val tentativa = usuario.registrarTentativa(licaoConcluida, respostasEscolhidas)
+
+        // Salva no banco em segundo plano; a tela não precisa esperar
+        viewModelScope.launch {
+            try {
+                progressoRepository.salvarTentativa(tentativa)
+            } catch (e: Exception) {
+                Log.w("AppViewModel", "Não foi possível salvar a tentativa", e)
+            }
+        }
 
         val recomendada = motor.recomendarProxima(usuario, _catalogoLicoes.value)
         _proximaLicao.value = recomendada
