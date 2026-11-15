@@ -10,8 +10,8 @@ class RecomendadorAdaptativo(
     private val maxTentativasPorLicao: Int = 3
 ) : MotorRecomendacao {
 
-    override fun recomendarProxima(usuario: Usuario, catalogo: List<Licao>): Licao? {
-        if (catalogo.isEmpty()) return null
+    override fun recomendarProxima(usuario: Usuario, licoesDisponiveis: List<Licao>): Licao? {
+        if (licoesDisponiveis.isEmpty()) return null
 
         val tentativasPorLicao = usuario.historico.groupBy { it.licaoId }
 
@@ -22,13 +22,13 @@ class RecomendadorAdaptativo(
             .toSet()
 
         // Pré-calcula aproveitamento por assunto uma única vez
-        val mediaPorAssunto = catalogo
+        val mediaPorAssunto = licoesDisponiveis
             .map { it.assunto }
             .distinct()
-            .associateWith { assunto -> usuario.aproveitamentoPorAssunto(assunto, catalogo) }
+            .associateWith { assunto -> usuario.aproveitamentoPorAssunto(assunto, licoesDisponiveis) }
 
         // Candidatas: inéditas OU feitas menos de 3 vezes sem atingir 70% na última tentativa
-        val candidatas = catalogo.filter { licao ->
+        val candidatas = licoesDisponiveis.filter { licao ->
             val historicoLicao = tentativasPorLicao[licao.id].orEmpty()
             if (historicoLicao.isEmpty()) return@filter true
 
