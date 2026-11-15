@@ -3,12 +3,17 @@ package com.pdm.dailydev.ui.preview
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
+import com.pdm.dailydev.filtro.FaixaDificuldade
+import com.pdm.dailydev.filtro.FiltroLicoes
+import com.pdm.dailydev.filtro.StatusLicao
 import com.pdm.dailydev.model.Assunto
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.NivelUsuario
 import com.pdm.dailydev.model.Questao
 import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.ui.telas.LicaoScreen
+import com.pdm.dailydev.ui.telas.TelaLicoes
+import com.pdm.dailydev.ui.telas.TelaMenu
 import com.pdm.dailydev.ui.telas.TelaPrincipal
 import com.pdm.dailydev.ui.telas.licao.LicaoViewModel
 
@@ -80,6 +85,37 @@ private fun TelaPrincipalHistoricoPreview() {
         proximaLicao = null,
         onIniciarClick = {}
     )
+}
+
+@Preview(name = "Lições por assunto", showBackground = true, showSystemUi = true)
+@Composable
+private fun TelaLicoesPreview() {
+    TelaLicoes(
+        catalogoLicoes = DadosPreview.catalogo,
+        historico = emptyList(),
+        filtro = FiltroLicoes(),
+        onFiltroChange = {},
+        onLicaoClick = {}
+    )
+}
+
+@Preview(name = "Lições - filtro marcado", showBackground = true, showSystemUi = true)
+@Composable
+private fun TelaLicoesFiltradaPreview() {
+    val usuario = DadosPreview.usuarioComHistorico()
+    TelaLicoes(
+        catalogoLicoes = DadosPreview.catalogo,
+        historico = usuario.historico,
+        filtro = FiltroLicoes(faixa = FaixaDificuldade.FACIL, status = StatusLicao.DOMINADA),
+        onFiltroChange = {},
+        onLicaoClick = {}
+    )
+}
+
+@Preview(name = "Menu / perfil", showBackground = true, showSystemUi = true)
+@Composable
+private fun TelaMenuPreview() {
+    TelaMenu(usuario = DadosPreview.usuarioComHistorico())
 }
 
 @Preview(name = "Lição - explicação", showBackground = true, showSystemUi = true)

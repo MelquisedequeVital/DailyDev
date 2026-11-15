@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pdm.dailydev.data.LicaoRepository
 import com.pdm.dailydev.data.LicaoRepositoryLocal
+import com.pdm.dailydev.filtro.FiltroLicoes
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.recomendacao.MotorRecomendacao
@@ -30,6 +31,10 @@ class AppViewModel(
     private val _proximaLicao = MutableStateFlow<Licao?>(null)
     val proximaLicao: StateFlow<Licao?> = _proximaLicao.asStateFlow()
 
+    // Fica aqui (e não na tela) para não se perder ao trocar de aba
+    private val _filtro = MutableStateFlow(FiltroLicoes())
+    val filtro: StateFlow<FiltroLicoes> = _filtro.asStateFlow()
+
     init {
         carregarLicoes()
     }
@@ -52,5 +57,9 @@ class AppViewModel(
         val recomendada = motor.recomendarProxima(usuario, _catalogoLicoes.value)
         _proximaLicao.value = recomendada
         return recomendada
+    }
+
+    fun atualizarFiltro(novo: FiltroLicoes) {
+        _filtro.value = novo
     }
 }
