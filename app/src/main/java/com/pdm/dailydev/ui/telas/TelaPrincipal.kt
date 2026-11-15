@@ -26,9 +26,21 @@ fun TelaPrincipal(
     usuario: Usuario,
     catalogoLicoes: List<Licao>,
     proximaLicao: Licao?,
-    onIniciarClick: () -> Unit
+    onIniciarClick: () -> Unit,
+    carregando: Boolean = false,
+    erro: String? = null,
+    onTentarNovamenteClick: () -> Unit = {}
 ) {
     val temLicaoDisponivel = proximaLicao != null
+
+    // O botão muda conforme o estado: carregando, erro (tentar de novo) ou normal
+    val textoBotao = when {
+        carregando -> "Carregando lições..."
+        erro != null -> "Tentar novamente"
+        temLicaoDisponivel -> "Iniciar Lição Recomendada"
+        else -> "Todas as lições concluídas"
+    }
+    val botaoAtivo = !carregando && (erro != null || temLicaoDisponivel)
     val licoesPorId = remember(catalogoLicoes) { catalogoLicoes.associateBy { it.id } }
     val historicoRecente = usuario.historico.asReversed()
 
@@ -41,8 +53,8 @@ fun TelaPrincipal(
         topBar = { DailyDevTopBar(usuario = usuario) },
         bottomBar = {
             Button(
-                onClick = onIniciarClick,
-                enabled = temLicaoDisponivel,
+                onClick = if (erro != null) onTentarNovamenteClick else onIniciarClick,
+                enabled = botaoAtivo,
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
@@ -55,8 +67,8 @@ fun TelaPrincipal(
                 )
             ) {
                 Text(
-                    text = if (temLicaoDisponivel) "Iniciar Lição Recomendada" else "Todas as lições concluídas",
-                    color = if (temLicaoDisponivel) DailyDevColors.TextPrimary else DailyDevColors.TextSecondary,
+                    text = textoBotao,
+                    color = if (botaoAtivo) DailyDevColors.TextPrimary else DailyDevColors.TextSecondary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -71,6 +83,15 @@ fun TelaPrincipal(
                 .padding(horizontal = 20.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // Aviso de erro ao carregar as lições
+            if (erro != null) {
+                Text(
+                    text = erro,
+                    color = DailyDevColors.AccentOrange,
+                    fontSize = 14.sp
+                )
+            }
+
             // Saudação + Ofensiva
             Row(
                 modifier = Modifier.fillMaxWidth(),

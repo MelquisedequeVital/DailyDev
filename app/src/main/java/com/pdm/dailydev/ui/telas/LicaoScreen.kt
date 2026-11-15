@@ -1,5 +1,6 @@
 package com.pdm.dailydev.ui.telas
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,10 +27,10 @@ import com.pdm.dailydev.ui.theme.DailyDevColors
 @Composable
 fun LicaoScreen(
     licao: Licao,
-    sessaoId: java.util.UUID = java.util.UUID.randomUUID(),
     onVoltarClick: () -> Unit = {},
     onConcluirLicao: (respostas: List<Int>, irParaProxima: Boolean) -> Unit = { _, _ -> },
-    viewModel: LicaoViewModel = viewModel(key = sessaoId.toString()) { LicaoViewModel(licao) }
+    // Dentro do NavHost, viewModel() fica preso à entrada da pilha: cada navegação cria um novo
+    viewModel: LicaoViewModel = viewModel(key = licao.id.toString()) { LicaoViewModel(licao) }
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -45,6 +46,17 @@ fun LicaoScreen(
         }
     }
 
+    val voltar = {
+        if (uiState is LicaoUiState.Resultado) {
+            concluirEVoltar()
+        } else {
+            viewModel.voltar(onVoltarClick)
+        }
+    }
+
+    // Botão/gesto "voltar" do Android faz o mesmo que a seta do cabeçalho
+    BackHandler(onBack = voltar)
+
     Scaffold(
         containerColor = DailyDevColors.Background,
         topBar = {
@@ -58,13 +70,7 @@ fun LicaoScreen(
                     titulo = licao.titulo,
                     etapaAtual = uiState.etapaAtual,
                     totalEtapas = uiState.totalEtapas,
-                    onVoltarClick = {
-                        if (uiState is LicaoUiState.Resultado) {
-                            concluirEVoltar()
-                        } else {
-                            viewModel.voltar(onVoltarClick)
-                        }
-                    }
+                    onVoltarClick = voltar
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(

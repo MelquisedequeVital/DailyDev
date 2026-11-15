@@ -12,6 +12,12 @@ class Usuario(
     private val _historico = mutableListOf<Tentativa>()
     val historico: List<Tentativa> get() = _historico.toList()
 
+    /** Substitui o histórico pelo que veio do banco (usado ao abrir o app). */
+    fun carregarHistorico(tentativas: List<Tentativa>) {
+        _historico.clear()
+        _historico.addAll(tentativas)
+    }
+
     fun registrarTentativa(licao: Licao, respostas: List<Int>): Tentativa {
         val acertos = licao.calcularAcertos(respostas)
         val tentativa = Tentativa(

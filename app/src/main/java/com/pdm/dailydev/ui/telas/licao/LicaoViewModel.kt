@@ -11,13 +11,13 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class LicaoViewModel(val licao: Licao) : ViewModel() {
 
+    val totalEtapas: Int = licao.questoes.size + 2
+
     private var etapaAtual: EtapaLicao = EtapaExplicacao()
     private val respostasMap = mutableMapOf<Int, Int>()
 
     private val _uiState = MutableStateFlow(etapaAtual.toUiState(this))
     val uiState: StateFlow<LicaoUiState> = _uiState.asStateFlow()
-
-    val totalEtapas: Int = licao.questoes.size + 2
 
     fun mudarEtapa(novaEtapa: EtapaLicao) {
         etapaAtual = novaEtapa

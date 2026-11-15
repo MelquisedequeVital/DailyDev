@@ -1,21 +1,25 @@
 package com.pdm.dailydev.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pdm.dailydev.data.LicaoRepository
-import com.pdm.dailydev.data.LicaoRepositoryLocal
+import com.pdm.dailydev.data.LicaoRepositoryFirestore
+import com.pdm.dailydev.data.ProgressoRepository
+import com.pdm.dailydev.data.ProgressoRepositoryFirestore
+import com.pdm.dailydev.filtro.FiltroLicoes
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.recomendacao.MotorRecomendacao
 import com.pdm.dailydev.recomendacao.RecomendadorAdaptativo
-import com.pdm.dailydev.recomendacao.RecomendadorSimples
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AppViewModel(
-    private val repository: LicaoRepository = LicaoRepositoryLocal(),
+    private val repository: LicaoRepository = LicaoRepositoryFirestore(),
+    private val progressoRepository: ProgressoRepository = ProgressoRepositoryFirestore(),
     private val motor: MotorRecomendacao = RecomendadorAdaptativo()
 ) : ViewModel() {
 
@@ -28,47 +32,71 @@ class AppViewModel(
     private val _catalogoLicoes = MutableStateFlow<List<Licao>>(emptyList())
     val catalogoLicoes: StateFlow<List<Licao>> = _catalogoLicoes.asStateFlow()
 
-    private val _screenState = MutableStateFlow<AppScreenState>(AppScreenState.Principal)
-    val screenState: StateFlow<AppScreenState> = _screenState.asStateFlow()
-
     private val _proximaLicao = MutableStateFlow<Licao?>(null)
     val proximaLicao: StateFlow<Licao?> = _proximaLicao.asStateFlow()
+
+    // true enquanto busca as lições no banco
+    private val _carregando = MutableStateFlow(false)
+    val carregando: StateFlow<Boolean> = _carregando.asStateFlow()
+
+    // mensagem para o usuário quando não foi possível carregar (null = tudo certo)
+    private val _erro = MutableStateFlow<String?>(null)
+    val erro: StateFlow<String?> = _erro.asStateFlow()
+
+    // Fica aqui (e não na tela) para não se perder ao trocar de aba
+    private val _filtro = MutableStateFlow(FiltroLicoes())
+    val filtro: StateFlow<FiltroLicoes> = _filtro.asStateFlow()
 
     init {
         carregarLicoes()
     }
 
-    private fun carregarLicoes() {
+    fun carregarLicoes() {
         viewModelScope.launch {
-            val licoes = repository.obterTodasLicoes()
-            _catalogoLicoes.value = licoes
-            _proximaLicao.value = motor.recomendarProxima(usuario, licoes)
+            _carregando.value = true
+            _erro.value = null
+            try {
+                val licoes = repository.obterTodasLicoes()
+                // Histórico antes de recomendar: a recomendação depende do que o aluno já fez
+                val historico = progressoRepository.carregarHistorico(usuario.id)
+                usuario.carregarHistorico(historico)
+                _catalogoLicoes.value = licoes
+                _proximaLicao.value = motor.recomendarProxima(usuario, licoes)
+                if (licoes.isEmpty()) {
+                    _erro.value = "Não foi possível carregar as lições. Verifique sua conexão."
+                }
+            } catch (e: Exception) {
+                // sem o try/catch, um erro do banco (ex.: sem permissão) fecharia o app
+                Log.w("AppViewModel", "Erro ao carregar lições/progresso", e)
+                _erro.value = "Erro ao carregar as lições. Verifique sua conexão."
+            } finally {
+                _carregando.value = false
+            }
         }
     }
 
-    fun iniciarLicao() {
-        val licao = _proximaLicao.value ?: return
-        _screenState.value = AppScreenState.EmLicao(licao)
-    }
-
-    fun voltarParaPrincipal() {
-        _screenState.value = AppScreenState.Principal
-    }
-
+    /** Registra a tentativa e retorna a próxima lição recomendada (ou null se acabaram). */
     fun concluirLicao(
         licaoConcluida: Licao,
-        respostasEscolhidas: List<Int>,
-        irParaProxima: Boolean = true
-    ) {
-        usuario.registrarTentativa(licaoConcluida, respostasEscolhidas)
+        respostasEscolhidas: List<Int>
+    ): Licao? {
+        val tentativa = usuario.registrarTentativa(licaoConcluida, respostasEscolhidas)
+
+        // Salva no banco em segundo plano; a tela não precisa esperar
+        viewModelScope.launch {
+            try {
+                progressoRepository.salvarTentativa(tentativa)
+            } catch (e: Exception) {
+                Log.w("AppViewModel", "Não foi possível salvar a tentativa", e)
+            }
+        }
 
         val recomendada = motor.recomendarProxima(usuario, _catalogoLicoes.value)
         _proximaLicao.value = recomendada
+        return recomendada
+    }
 
-        _screenState.value = if (irParaProxima && recomendada != null) {
-            AppScreenState.EmLicao(recomendada)
-        } else {
-            AppScreenState.Principal
-        }
+    fun atualizarFiltro(novo: FiltroLicoes) {
+        _filtro.value = novo
     }
 }
