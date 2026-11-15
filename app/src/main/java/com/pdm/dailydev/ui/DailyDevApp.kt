@@ -14,6 +14,8 @@ fun DailyDevApp(
     val screenState by appViewModel.screenState.collectAsState()
     val proximaLicao by appViewModel.proximaLicao.collectAsState()
     val catalogoLicoes by appViewModel.catalogoLicoes.collectAsState()
+    val carregando by appViewModel.carregando.collectAsState()
+    val erro by appViewModel.erro.collectAsState()
 
     when (val estado = screenState) {
         is AppScreenState.Principal -> {
@@ -21,7 +23,10 @@ fun DailyDevApp(
                 usuario = appViewModel.usuario,
                 catalogoLicoes = catalogoLicoes,
                 proximaLicao = proximaLicao,
-                onIniciarClick = { appViewModel.iniciarLicao() }
+                onIniciarClick = { appViewModel.iniciarLicao() },
+                carregando = carregando,
+                erro = erro,
+                onTentarNovamenteClick = { appViewModel.carregarLicoes() }
             )
         }
 

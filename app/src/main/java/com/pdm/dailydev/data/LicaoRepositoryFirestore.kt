@@ -3,6 +3,7 @@ package com.pdm.dailydev.data
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import com.pdm.dailydev.model.Assunto
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Questao
@@ -60,7 +61,14 @@ class LicaoRepositoryFirestore(
      */
     private suspend fun popularBancoSeVazio() {
         seedMutex.withLock {
-            val verificacao = assuntosCollection.limit(1).get().awaitResult()
+            // Source.SERVER: pergunta ao servidor, não ao cache do celular.
+            // Sem internet o cache vem vazio e o app acharia que o banco está vazio,
+            // enviando as lições de novo (com IDs novos = duplicadas).
+            val verificacao = try {
+                assuntosCollection.limit(1).get(Source.SERVER).awaitResult()
+            } catch (e: Exception) {
+                return // sem conexão: não dá para saber se o banco está vazio, então não popula
+            }
             if (!verificacao.isEmpty) return
 
             val dadosIniciais = LicaoRepositoryLocal()

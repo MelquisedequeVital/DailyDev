@@ -34,15 +34,35 @@ class AppViewModel(
     private val _proximaLicao = MutableStateFlow<Licao?>(null)
     val proximaLicao: StateFlow<Licao?> = _proximaLicao.asStateFlow()
 
+    // true enquanto busca as lições no banco
+    private val _carregando = MutableStateFlow(false)
+    val carregando: StateFlow<Boolean> = _carregando.asStateFlow()
+
+    // mensagem para o usuário quando não foi possível carregar (null = tudo certo)
+    private val _erro = MutableStateFlow<String?>(null)
+    val erro: StateFlow<String?> = _erro.asStateFlow()
+
     init {
         carregarLicoes()
     }
 
-    private fun carregarLicoes() {
+    fun carregarLicoes() {
         viewModelScope.launch {
-            val licoes = repository.obterTodasLicoes()
-            _catalogoLicoes.value = licoes
-            _proximaLicao.value = motor.recomendarProxima(usuario, licoes)
+            _carregando.value = true
+            _erro.value = null
+            try {
+                val licoes = repository.obterTodasLicoes()
+                _catalogoLicoes.value = licoes
+                _proximaLicao.value = motor.recomendarProxima(usuario, licoes)
+                if (licoes.isEmpty()) {
+                    _erro.value = "Não foi possível carregar as lições. Verifique sua conexão."
+                }
+            } catch (e: Exception) {
+                // sem o try/catch, um erro do banco (ex.: sem permissão) fecharia o app
+                _erro.value = "Erro ao carregar as lições. Verifique sua conexão."
+            } finally {
+                _carregando.value = false
+            }
         }
     }
 
