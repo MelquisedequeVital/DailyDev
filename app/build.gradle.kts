@@ -59,4 +59,6 @@ dependencies {
     implementation(libs.retrofit.gson)
     // OkHttp
     implementation(libs.okhttp.logging)
+    // Navigation
+    implementation(libs.androidx.navigation.compose)
 }
