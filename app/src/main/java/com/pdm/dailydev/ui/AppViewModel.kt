@@ -3,7 +3,7 @@ package com.pdm.dailydev.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pdm.dailydev.data.LicaoRepository
-import com.pdm.dailydev.data.LicaoRepositoryLocal
+import com.pdm.dailydev.data.LicaoRepositoryFirestore
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.recomendacao.MotorRecomendacao
@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class AppViewModel(
-    private val repository: LicaoRepository = LicaoRepositoryLocal(),
+    private val repository: LicaoRepository = LicaoRepositoryFirestore(),
     private val motor: MotorRecomendacao = RecomendadorAdaptativo()
 ) : ViewModel() {
 

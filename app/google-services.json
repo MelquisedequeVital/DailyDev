@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "318231143421",
+    "project_id": "projeto-3d396",
+    "storage_bucket": "projeto-3d396.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318231143421:android:58753b5961a00df5c06f94",
+        "android_client_info": {
+          "package_name": "br.edu.ifpb"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPBuGLcv7jRgWO58Ks31dKYIgLT9iJgWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318231143421:android:ec2f832143680499c06f94",
+        "android_client_info": {
+          "package_name": "com.example.apptask"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPBuGLcv7jRgWO58Ks31dKYIgLT9iJgWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:318231143421:android:2e9c8eaffa108351c06f94",
+        "android_client_info": {
+          "package_name": "com.pdm.dailydev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPBuGLcv7jRgWO58Ks31dKYIgLT9iJgWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
