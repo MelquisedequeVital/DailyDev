@@ -8,9 +8,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,9 +45,6 @@ fun TelaLicoes(
     onFiltroChange: (FiltroLicoes) -> Unit,
     onLicaoClick: (Licao) -> Unit
 ) {
-    // Opções de assunto vêm do catálogo inteiro, para não sumirem ao filtrar
-    val assuntos = catalogoLicoes.map { it.assunto }.distinct()
-
     // Aplica o filtro e agrupa o resultado pelo assunto: Map<Assunto, List<Licao>>
     val licoesPorAssunto = aplicarFiltro(catalogoLicoes, historico, filtro).groupBy { it.assunto }
 
@@ -76,16 +76,30 @@ fun TelaLicoes(
             }
         }
 
+        // Busca por assunto: a lista filtra a cada letra digitada
+        OutlinedTextField(
+            value = filtro.assunto,
+            onValueChange = { onFiltroChange(filtro.copy(assunto = it)) },
+            label = { Text("Buscar por assunto") },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            // Cores do app: sem isso, o texto sairia escuro sobre o fundo escuro
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = DailyDevColors.TextPrimary,
+                unfocusedTextColor = DailyDevColors.TextPrimary,
+                focusedBorderColor = DailyDevColors.PrimaryBlue,
+                unfocusedBorderColor = DailyDevColors.BorderDefault,
+                focusedLabelColor = DailyDevColors.PrimaryBlue,
+                unfocusedLabelColor = DailyDevColors.TextSecondary,
+                focusedLeadingIconColor = DailyDevColors.PrimaryBlue,
+                unfocusedLeadingIconColor = DailyDevColors.TextSecondary,
+                cursorColor = DailyDevColors.PrimaryBlue
+            )
+        )
+
         // null = "Todos" (primeira opção de cada filtro)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FiltroDropdown(
-                titulo = "Assunto",
-                opcoes = listOf(null) + assuntos,
-                selecionada = assuntos.find { it.id == filtro.assuntoId },
-                texto = { it?.nome ?: "Todos" },
-                onSelecionar = { onFiltroChange(filtro.copy(assuntoId = it?.id)) },
-                modifier = Modifier.weight(1f)
-            )
             FiltroDropdown(
                 titulo = "Dificuldade",
                 opcoes = listOf(null) + FaixaDificuldade.entries,
@@ -96,8 +110,6 @@ fun TelaLicoes(
                 onSelecionar = { onFiltroChange(filtro.copy(faixa = it)) },
                 modifier = Modifier.weight(1f)
             )
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FiltroDropdown(
                 titulo = "Status",
                 opcoes = listOf(null) + StatusLicao.entries,
@@ -106,15 +118,15 @@ fun TelaLicoes(
                 onSelecionar = { onFiltroChange(filtro.copy(status = it)) },
                 modifier = Modifier.weight(1f)
             )
-            FiltroDropdown(
-                titulo = "Ordenar",
-                opcoes = OrdemLicoes.entries,
-                selecionada = filtro.ordem,
-                texto = { it.titulo },
-                onSelecionar = { onFiltroChange(filtro.copy(ordem = it)) },
-                modifier = Modifier.weight(1f)
-            )
         }
+        FiltroDropdown(
+            titulo = "Ordenar",
+            opcoes = OrdemLicoes.entries,
+            selecionada = filtro.ordem,
+            texto = { it.titulo },
+            onSelecionar = { onFiltroChange(filtro.copy(ordem = it)) },
+            modifier = Modifier.fillMaxWidth()
+        )
 
         if (licoesPorAssunto.isEmpty()) {
             Text(

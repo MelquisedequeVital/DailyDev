@@ -32,9 +32,21 @@ class FiltroLicoesTest {
     }
 
     @Test
-    fun filtroPorAssunto_retornaSoLicoesDoAssunto() {
-        val resultado = aplicarFiltro(catalogo, emptyList(), FiltroLicoes(assuntoId = git.id))
+    fun buscaPorAssunto_retornaSoLicoesDoAssunto() {
+        val resultado = aplicarFiltro(catalogo, emptyList(), FiltroLicoes(assunto = "git"))
         assertEquals(listOf(medioGit), resultado)
+    }
+
+    @Test
+    fun buscaPorAssunto_aceitaTextoParcialEMaiusculas() {
+        val resultado = aplicarFiltro(catalogo, emptyList(), FiltroLicoes(assunto = "KOT"))
+        assertEquals(listOf(facilKotlin, dificilKotlin), resultado)
+    }
+
+    @Test
+    fun buscaSoComEspacos_retornaTudo() {
+        val resultado = aplicarFiltro(catalogo, emptyList(), FiltroLicoes(assunto = "   "))
+        assertEquals(catalogo, resultado)
     }
 
     @Test

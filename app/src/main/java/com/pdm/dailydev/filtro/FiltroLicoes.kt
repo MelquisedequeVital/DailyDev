@@ -2,7 +2,6 @@ package com.pdm.dailydev.filtro
 
 import com.pdm.dailydev.model.Licao
 import com.pdm.dailydev.model.Tentativa
-import java.util.UUID
 
 enum class FaixaDificuldade(val titulo: String, val niveis: IntRange) {
     FACIL("Fácil", 1..3),
@@ -25,7 +24,7 @@ enum class OrdemLicoes(val titulo: String) {
 
 // null = "Todos" (não filtra por esse campo)
 data class FiltroLicoes(
-    val assuntoId: UUID? = null,
+    val assunto: String = "", // texto digitado na busca; vazio = todos os assuntos
     val faixa: FaixaDificuldade? = null,
     val status: StatusLicao? = null,
     val ordem: OrdemLicoes = OrdemLicoes.PADRAO
@@ -46,7 +45,9 @@ fun aplicarFiltro(
     filtro: FiltroLicoes
 ): List<Licao> {
     val filtradas = catalogo.filter { licao ->
-        (filtro.assuntoId == null || licao.assunto.id == filtro.assuntoId) &&
+        // Busca por texto: o nome do assunto contém o que foi digitado (sem diferenciar maiúsculas)
+        (filtro.assunto.isBlank() ||
+            licao.assunto.nome.contains(filtro.assunto.trim(), ignoreCase = true)) &&
             (filtro.faixa == null || licao.dificuldade in filtro.faixa.niveis) &&
             (filtro.status == null || statusDaLicao(licao, historico) == filtro.status)
     }
