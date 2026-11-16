@@ -35,10 +35,23 @@ private val itensMenu = listOf("Personagem", "Projetos no GitHub", "Comunidade",
 fun TelaMenu(
     usuario: Usuario,
     onGithubClick: () -> Unit,
-    onSalvarApelido: (String) -> Unit = {}
+    onSalvarApelido: (String) -> Unit = {},
+    onExcluirConta: () -> Unit = {}
 ) {
     // Guarda se a janela de editar apelido está aberta
     var editandoApelido by remember { mutableStateOf(false) }
+    // Guarda se a janela de confirmar a exclusão está aberta
+    var confirmandoExclusao by remember { mutableStateOf(false) }
+
+    if (confirmandoExclusao) {
+        ExcluirContaDialog(
+            onConfirmar = {
+                confirmandoExclusao = false
+                onExcluirConta()
+            },
+            onCancelar = { confirmandoExclusao = false }
+        )
+    }
 
     if (editandoApelido) {
         EditarApelidoDialog(
@@ -168,7 +181,38 @@ fun TelaMenu(
                 }
             }
         }
+
+        // Ação perigosa fica separada dos outros itens e pede confirmação
+        TextButton(
+            onClick = { confirmandoExclusao = true },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text(text = "Excluir conta", color = DailyDevColors.AccentOrange)
+        }
     }
+}
+
+// Janela de confirmação: excluir a conta não tem volta
+@Composable
+private fun ExcluirContaDialog(
+    onConfirmar: () -> Unit,
+    onCancelar: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onCancelar,
+        title = { Text("Excluir conta?") },
+        text = { Text("Isso apaga seu apelido e todo o seu progresso. Não dá para desfazer.") },
+        confirmButton = {
+            TextButton(onClick = onConfirmar) {
+                Text("Excluir", color = DailyDevColors.AccentOrange)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancelar) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 // Janela (Material 3) com uma caixa de texto para trocar o apelido

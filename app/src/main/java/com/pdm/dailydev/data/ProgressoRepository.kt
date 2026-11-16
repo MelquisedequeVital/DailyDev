@@ -18,4 +18,7 @@ interface ProgressoRepository {
 
     /** Cria (primeira vez) ou atualiza o apelido do aluno. */
     suspend fun salvarApelido(apelido: String)
+
+    /** Apaga todos os dados do aluno (tentativas e apelido) e a conta dele. Não tem volta. */
+    suspend fun excluirConta()
 }

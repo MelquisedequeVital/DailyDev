@@ -1,5 +1,7 @@
 package com.pdm.dailydev.ui
 
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -48,6 +50,7 @@ fun DailyDevApp(
     appViewModel: AppViewModel = viewModel()
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current // usado para mostrar os avisos (Toast)
 
     val proximaLicao by appViewModel.proximaLicao.collectAsState()
     val catalogoLicoes by appViewModel.catalogoLicoes.collectAsState()
@@ -157,7 +160,24 @@ fun DailyDevApp(
                     onGithubClick = {
                         navController.navigate(Rotas.GITHUB)
                     },
-                    onSalvarApelido = { appViewModel.atualizarApelido(it) }
+                    onSalvarApelido = { appViewModel.atualizarApelido(it) },
+                    onExcluirConta = {
+                        appViewModel.excluirConta { sucesso ->
+                            if (sucesso) {
+                                Toast.makeText(context, "Conta excluída", Toast.LENGTH_SHORT).show()
+                                // Volta para o Início, recriado do zero com o aluno zerado
+                                navController.navigate(Rotas.PRINCIPAL) {
+                                    popUpTo(Rotas.PRINCIPAL) { inclusive = true }
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Não foi possível excluir a conta. Verifique sua conexão.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
                 )
             }
 

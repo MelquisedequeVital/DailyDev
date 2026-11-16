@@ -114,6 +114,25 @@ class AppViewModel(
         }
     }
 
+    /**
+     * Apaga a conta no banco e zera o aluno na tela.
+     * aoTerminar(true) = deu certo; aoTerminar(false) = falhou (ex.: erro do banco).
+     */
+    fun excluirConta(aoTerminar: (sucesso: Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                progressoRepository.excluirConta()
+                usuario.carregarHistorico(emptyList())
+                usuario.nome = "Dev"
+                _proximaLicao.value = motor.recomendarProxima(usuario, _catalogoLicoes.value)
+                aoTerminar(true)
+            } catch (e: Exception) {
+                Log.w("AppViewModel", "Não foi possível excluir a conta", e)
+                aoTerminar(false)
+            }
+        }
+    }
+
     fun atualizarFiltro(novo: FiltroLicoes) {
         _filtro.value = novo
     }

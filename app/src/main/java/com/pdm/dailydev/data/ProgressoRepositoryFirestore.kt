@@ -1,6 +1,7 @@
 package com.pdm.dailydev.data
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -56,6 +57,28 @@ class ProgressoRepositoryFirestore(
         documentoDoAluno()
             .set(mapOf("apelido" to apelido), SetOptions.merge())
             .awaitResult()
+    }
+
+    override suspend fun excluirConta() {
+        // Nunca entrou no Firebase: não há nada salvo para apagar
+        val usuarioFirebase = auth.currentUser ?: return
+        val docAluno = db.collection("usuarios").document(usuarioFirebase.uid)
+
+        // A ordem importa: as regras só deixam apagar os dados enquanto o aluno está logado.
+        // 1) Tentativas, uma por uma (apagar o documento do aluno NÃO apaga a subcoleção)
+        val tentativas = docAluno.collection("tentativas").get().awaitResult()
+        tentativas.documents.forEach { it.reference.delete().awaitResult() }
+
+        // 2) Documento do aluno (onde fica o apelido)
+        docAluno.delete().awaitResult()
+
+        // 3) O login. Se o Firebase exigir um login recente para isso, só sai da conta:
+        //    os dados já foram apagados e o próximo acesso cria um aluno novo.
+        try {
+            usuarioFirebase.delete().awaitResult()
+        } catch (e: FirebaseAuthRecentLoginRequiredException) {
+            auth.signOut()
+        }
     }
 
     /** Faz o login anônimo (só na primeira vez) e devolve o documento do aluno: usuarios/{uid}. */
