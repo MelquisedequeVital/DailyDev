@@ -1,4 +1,4 @@
-"package com.pdm.dailydev.ui
+package com.pdm.dailydev.ui
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
