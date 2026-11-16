@@ -19,12 +19,17 @@ import androidx.compose.ui.unit.sp
 import com.pdm.dailydev.model.NivelUsuario
 import com.pdm.dailydev.model.Usuario
 import com.pdm.dailydev.ui.theme.DailyDevColors
+import androidx.compose.foundation.clickable
 
 // Itens do protótipo que ainda não existem no app
-private val itensMenu = listOf("Personagem", "Comunidade", "Amigos", "Tema", "Sair")
+private val itensMenu = listOf("Personagem", "Projetos no GitHub", "Comunidade", "Amigos", "Tema", "Sair")
 
 @Composable
-fun TelaMenu(usuario: Usuario) {
+fun TelaMenu(
+    usuario: Usuario,
+    onGithubClick: () -> Unit
+) {
+
     val licoesFeitas = usuario.historico.map { it.licaoId }.distinct().size
 
     val licoesDominadas = usuario.historico
@@ -100,17 +105,32 @@ fun TelaMenu(usuario: Usuario) {
         ) {
             Column {
                 itensMenu.forEachIndexed { indice, item ->
+
                     if (indice > 0) {
                         HorizontalDivider(color = DailyDevColors.BorderDefault)
                     }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clickable(
+                                enabled = item == "Projetos no GitHub",
+                                onClick = onGithubClick
+                            )
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = item, color = DailyDevColors.TextPrimary, fontSize = 15.sp)
-                        Text(text = "Em breve", color = DailyDevColors.TextSecondary, fontSize = 13.sp)
+                        Text(
+                            text = item,
+                            color = DailyDevColors.TextPrimary,
+                            fontSize = 15.sp
+                        )
+
+                        Text(
+                            text = if (item == "Projetos no GitHub") "Explorar" else "Em breve",
+                            color = DailyDevColors.TextSecondary,
+                            fontSize = 13.sp
+                        )
                     }
                 }
             }

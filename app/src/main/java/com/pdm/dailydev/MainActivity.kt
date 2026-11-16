@@ -1,6 +1,5 @@
 package com.pdm.dailydev
 
-import android.net.http.HttpException
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,7 +8,7 @@ import com.pdm.dailydev.ui.DailyDevApp
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
-import com.pdm.dailydev.repository.GithubRepository
+import com.pdm.dailydev.data.repository.GithubRepository
 import java.io.IOException
 
 

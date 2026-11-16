@@ -33,6 +33,7 @@ import com.pdm.dailydev.ui.telas.TelaMenu
 import com.pdm.dailydev.ui.telas.TelaPrincipal
 import com.pdm.dailydev.ui.theme.DailyDevColors
 import java.util.UUID
+import com.pdm.dailydev.ui.telas.GithubScreen
 
 private data class Aba(val rota: String, val titulo: String, val icone: ImageVector)
 
@@ -151,7 +152,16 @@ fun DailyDevApp(
             }
 
             composable(Rotas.MENU) {
-                TelaMenu(usuario = appViewModel.usuario)
+                TelaMenu(
+                    usuario = appViewModel.usuario,
+                    onGithubClick = {
+                        navController.navigate(Rotas.GITHUB)
+                    }
+                )
+            }
+
+            composable(route = Rotas.GITHUB) {
+                GithubScreen()
             }
         }
     }

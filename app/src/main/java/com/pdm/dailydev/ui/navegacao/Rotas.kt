@@ -11,4 +11,6 @@ object Rotas {
     const val LICAO = "licao/{$ARG_LICAO_ID}"
 
     fun licao(licaoId: UUID) = "licao/$licaoId"
+
+    const val GITHUB = "github"
 }

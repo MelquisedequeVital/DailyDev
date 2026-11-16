@@ -115,7 +115,10 @@ private fun TelaLicoesFiltradaPreview() {
 @Preview(name = "Menu / perfil", showBackground = true, showSystemUi = true)
 @Composable
 private fun TelaMenuPreview() {
-    TelaMenu(usuario = DadosPreview.usuarioComHistorico())
+    TelaMenu(
+        usuario = DadosPreview.usuarioComHistorico(),
+        onGithubClick = {}
+    )
 }
 
 @Preview(name = "Lição - explicação", showBackground = true, showSystemUi = true)

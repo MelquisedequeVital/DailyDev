@@ -1,4 +1,4 @@
-package com.pdm.dailydev.repository
+package com.pdm.dailydev.data.repository
 
 import com.pdm.dailydev.data.remote.GithubApi
 import com.pdm.dailydev.data.remote.RetrofitInstance
