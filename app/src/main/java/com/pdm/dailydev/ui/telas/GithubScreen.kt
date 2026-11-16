@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.pdm.dailydev.ui.components.GithubRepositoriesSection
+import com.pdm.dailydev.ui.theme.DailyDevColors
 
 @Composable
 fun GithubScreen(
@@ -29,12 +30,14 @@ fun GithubScreen(
             IconButton(onClick = onVoltarClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Voltar"
+                    contentDescription = "Voltar",
+                    tint = DailyDevColors.TextPrimary // claro, para aparecer no fundo escuro
                 )
             }
 
             Text(
                 text = "Materiais complementares",
+                color = DailyDevColors.TextPrimary,
                 style = MaterialTheme.typography.titleLarge
             )
         }
