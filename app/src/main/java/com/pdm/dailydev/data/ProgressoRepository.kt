@@ -12,4 +12,13 @@ interface ProgressoRepository {
     suspend fun carregarHistorico(usuarioId: UUID): List<Tentativa>
 
     suspend fun salvarTentativa(tentativa: Tentativa)
+
+    /** Apelido salvo do aluno, ou null se ele ainda não escolheu um. */
+    suspend fun carregarApelido(): String?
+
+    /** Cria (primeira vez) ou atualiza o apelido do aluno. */
+    suspend fun salvarApelido(apelido: String)
+
+    /** Apaga todos os dados do aluno (tentativas e apelido) e a conta dele. Não tem volta. */
+    suspend fun excluirConta()
 }

@@ -60,6 +60,8 @@ class AppViewModel(
                 // Histórico antes de recomendar: a recomendação depende do que o aluno já fez
                 val historico = progressoRepository.carregarHistorico(usuario.id)
                 usuario.carregarHistorico(historico)
+                // Se o aluno nunca escolheu um apelido, continua "Dev"
+                progressoRepository.carregarApelido()?.let { usuario.nome = it }
                 _catalogoLicoes.value = licoes
                 _proximaLicao.value = motor.recomendarProxima(usuario, licoes)
                 if (licoes.isEmpty()) {
@@ -94,6 +96,41 @@ class AppViewModel(
         val recomendada = motor.recomendarProxima(usuario, _catalogoLicoes.value)
         _proximaLicao.value = recomendada
         return recomendada
+    }
+
+    /** Troca o apelido na tela na hora e salva no banco em segundo plano. */
+    fun atualizarApelido(novo: String) {
+        val apelido = novo.trim().take(20)
+        if (apelido.isEmpty()) return
+
+        usuario.nome = apelido
+
+        viewModelScope.launch {
+            try {
+                progressoRepository.salvarApelido(apelido)
+            } catch (e: Exception) {
+                Log.w("AppViewModel", "Não foi possível salvar o apelido", e)
+            }
+        }
+    }
+
+    /**
+     * Apaga a conta no banco e zera o aluno na tela.
+     * aoTerminar(true) = deu certo; aoTerminar(false) = falhou (ex.: erro do banco).
+     */
+    fun excluirConta(aoTerminar: (sucesso: Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                progressoRepository.excluirConta()
+                usuario.carregarHistorico(emptyList())
+                usuario.nome = "Dev"
+                _proximaLicao.value = motor.recomendarProxima(usuario, _catalogoLicoes.value)
+                aoTerminar(true)
+            } catch (e: Exception) {
+                Log.w("AppViewModel", "Não foi possível excluir a conta", e)
+                aoTerminar(false)
+            }
+        }
     }
 
     fun atualizarFiltro(novo: FiltroLicoes) {

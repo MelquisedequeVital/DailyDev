@@ -1,14 +1,20 @@
 package com.pdm.dailydev.model
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import java.util.UUID
 
 class Usuario(
     val id: UUID = UUID.randomUUID(),
-    val nome: String,
+    nome: String, // sem "val": é só o valor inicial do apelido
     val email: String,
     val senhaHash: String,
     var nivel: NivelUsuario = NivelUsuario.INICIANTE
 ) {
+    // Estado do Compose: quando o apelido muda, as telas que mostram o nome se redesenham
+    var nome by mutableStateOf(nome)
+
     private val _historico = mutableListOf<Tentativa>()
     val historico: List<Tentativa> get() = _historico.toList()
 
