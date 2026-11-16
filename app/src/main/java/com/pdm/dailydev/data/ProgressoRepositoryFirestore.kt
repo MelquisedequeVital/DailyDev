@@ -2,8 +2,10 @@ package com.pdm.dailydev.data
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.pdm.dailydev.model.Tentativa
 import java.util.UUID
 
@@ -44,16 +46,30 @@ class ProgressoRepositoryFirestore(
             .awaitResult()
     }
 
-    /** Faz o login anônimo (só na primeira vez) e devolve a coleção de tentativas do aluno. */
-    private suspend fun tentativasDoAluno(): CollectionReference {
+    override suspend fun carregarApelido(): String? {
+        val doc = documentoDoAluno().get().awaitResult()
+        return doc.getString("apelido")
+    }
+
+    override suspend fun salvarApelido(apelido: String) {
+        // merge(): cria o documento se não existir; se existir, troca só o campo "apelido"
+        documentoDoAluno()
+            .set(mapOf("apelido" to apelido), SetOptions.merge())
+            .awaitResult()
+    }
+
+    /** Faz o login anônimo (só na primeira vez) e devolve o documento do aluno: usuarios/{uid}. */
+    private suspend fun documentoDoAluno(): DocumentReference {
         val usuarioFirebase = auth.currentUser
             ?: auth.signInAnonymously().awaitResult().user
             ?: error("Não foi possível entrar no Firebase")
 
-        return db.collection("usuarios")
-            .document(usuarioFirebase.uid)
-            .collection("tentativas")
+        return db.collection("usuarios").document(usuarioFirebase.uid)
     }
+
+    /** Coleção de tentativas, dentro do documento do aluno. */
+    private suspend fun tentativasDoAluno(): CollectionReference =
+        documentoDoAluno().collection("tentativas")
 
     private fun documentoParaTentativa(doc: DocumentSnapshot, usuarioId: UUID): Tentativa? {
         return try {

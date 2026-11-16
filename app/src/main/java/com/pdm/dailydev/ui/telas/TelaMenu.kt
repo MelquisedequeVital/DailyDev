@@ -7,10 +7,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -27,8 +34,22 @@ private val itensMenu = listOf("Personagem", "Projetos no GitHub", "Comunidade",
 @Composable
 fun TelaMenu(
     usuario: Usuario,
-    onGithubClick: () -> Unit
+    onGithubClick: () -> Unit,
+    onSalvarApelido: (String) -> Unit = {}
 ) {
+    // Guarda se a janela de editar apelido está aberta
+    var editandoApelido by remember { mutableStateOf(false) }
+
+    if (editandoApelido) {
+        EditarApelidoDialog(
+            apelidoAtual = usuario.nome,
+            onSalvar = { novo ->
+                onSalvarApelido(novo)
+                editandoApelido = false
+            },
+            onCancelar = { editandoApelido = false }
+        )
+    }
 
     val licoesFeitas = usuario.historico.map { it.licaoId }.distinct().size
 
@@ -110,12 +131,24 @@ fun TelaMenu(
                         HorizontalDivider(color = DailyDevColors.BorderDefault)
                     }
 
+                    // O que acontece ao tocar no item (null = ainda não implementado)
+                    val acao: (() -> Unit)? = when (item) {
+                        "Personagem" -> { { editandoApelido = true } }
+                        "Projetos no GitHub" -> onGithubClick
+                        else -> null
+                    }
+                    val textoDireita = when (item) {
+                        "Personagem" -> "Editar apelido"
+                        "Projetos no GitHub" -> "Explorar"
+                        else -> "Em breve"
+                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable(
-                                enabled = item == "Projetos no GitHub",
-                                onClick = onGithubClick
+                                enabled = acao != null,
+                                onClick = { acao?.invoke() }
                             )
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
@@ -127,7 +160,7 @@ fun TelaMenu(
                         )
 
                         Text(
-                            text = if (item == "Projetos no GitHub") "Explorar" else "Em breve",
+                            text = textoDireita,
                             color = DailyDevColors.TextSecondary,
                             fontSize = 13.sp
                         )
@@ -136,6 +169,43 @@ fun TelaMenu(
             }
         }
     }
+}
+
+// Janela (Material 3) com uma caixa de texto para trocar o apelido
+@Composable
+private fun EditarApelidoDialog(
+    apelidoAtual: String,
+    onSalvar: (String) -> Unit,
+    onCancelar: () -> Unit
+) {
+    // Texto que o aluno está digitando, começa com o apelido atual
+    var texto by remember { mutableStateOf(apelidoAtual) }
+
+    AlertDialog(
+        onDismissRequest = onCancelar,
+        title = { Text("Editar apelido") },
+        text = {
+            OutlinedTextField(
+                value = texto,
+                onValueChange = { texto = it.take(20) }, // limite de 20 caracteres
+                label = { Text("Apelido") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSalvar(texto) },
+                enabled = texto.isNotBlank()
+            ) {
+                Text("Salvar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onCancelar) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
 
 @Composable

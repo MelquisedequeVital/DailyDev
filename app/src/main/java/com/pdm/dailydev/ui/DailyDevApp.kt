@@ -156,7 +156,8 @@ fun DailyDevApp(
                     usuario = appViewModel.usuario,
                     onGithubClick = {
                         navController.navigate(Rotas.GITHUB)
-                    }
+                    },
+                    onSalvarApelido = { appViewModel.atualizarApelido(it) }
                 )
             }
 
