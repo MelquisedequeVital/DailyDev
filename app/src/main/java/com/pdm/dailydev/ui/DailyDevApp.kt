@@ -161,7 +161,11 @@ fun DailyDevApp(
             }
 
             composable(route = Rotas.GITHUB) {
-                GithubScreen()
+                GithubScreen(
+                    onVoltarClick = {
+                        navController.popBackStack()
+                    }
+                )
             }
         }
     }
